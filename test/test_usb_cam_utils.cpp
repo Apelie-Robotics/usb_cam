@@ -76,8 +76,7 @@ TEST(test_usb_cam_utils, test_clip_value) {
 
 TEST(test_usb_cam_utils, test_monotonic_to_real_time) {
   // Get timeval to use for test
+  const timespec test_time = usb_cam::utils::get_epoch_time_shift();
 
-  const time_t test_time_t = usb_cam::utils::get_epoch_time_shift();
-
-  EXPECT_NE(test_time_t, 0);
+  EXPECT_NE(test_time.tv_sec + test_time.tv_nsec / 1e9, 0.);
 }

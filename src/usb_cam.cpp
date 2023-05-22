@@ -133,11 +133,13 @@ void UsbCam::read_frame()
       }
 
       // Get timestamp from V4L2 image buffer
-      m_buffer_time_s =
-        buf.timestamp.tv_sec + static_cast<int64_t>(round(buf.timestamp.tv_usec / 1000000.0));
-
-      m_image.stamp.tv_sec = static_cast<time_t>(round(m_buffer_time_s)) + m_epoch_time_shift;
-      m_image.stamp.tv_nsec = static_cast<int64_t>(buf.timestamp.tv_usec * 1000.0);
+      m_image.stamp.tv_sec = buf.timestamp.tv_sec + m_epoch_time_shift.tv_sec;
+      m_image.stamp.tv_nsec = buf.timestamp.tv_usec * 1000 + m_epoch_time_shift.tv_nsec;
+      if (m_image.stamp.tv_nsec < 0)
+      {
+        m_image.stamp.tv_nsec += 1000000000;
+        m_image.stamp.tv_sec -= 1;
+      }
 
       assert(buf.index < m_number_of_buffers);
       process_image(m_buffers[buf.index].start, m_image.data, buf.bytesused);
@@ -162,11 +164,13 @@ void UsbCam::read_frame()
         }
       }
 
-      m_buffer_time_s =
-        buf.timestamp.tv_sec + static_cast<int64_t>(round(buf.timestamp.tv_usec / 1000000.0));
-
-      m_image.stamp.tv_sec = static_cast<time_t>(round(m_buffer_time_s)) + m_epoch_time_shift;
-      m_image.stamp.tv_nsec = static_cast<int64_t>(buf.timestamp.tv_usec / 1000.0);
+      m_image.stamp.tv_sec = buf.timestamp.tv_sec + m_epoch_time_shift.tv_sec;
+      m_image.stamp.tv_nsec = buf.timestamp.tv_usec * 1000 + m_epoch_time_shift.tv_nsec;
+      if (m_image.stamp.tv_nsec < 0)
+      {
+        m_image.stamp.tv_nsec += 1000000000;
+        m_image.stamp.tv_sec -= 1;
+      }
 
       for (i = 0; i < m_number_of_buffers; ++i) {
         if (buf.m.userptr == reinterpret_cast<uint64_t>(m_buffers[i].start) && \
